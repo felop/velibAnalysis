@@ -1,3 +1,3 @@
-### simple graph : 
+### simple graph 
 
 ![](pics/TerminalOccupancies.png)
