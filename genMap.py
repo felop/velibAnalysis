@@ -1,7 +1,5 @@
-import urllib3, json, os, time, datetime, cv2
-from glob import glob
+import urllib3, json, time, datetime, cv2
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import matplotlib.cm as cm
 from scipy.ndimage.filters import gaussian_filter
 from tqdm import tqdm
