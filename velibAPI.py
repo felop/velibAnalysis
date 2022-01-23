@@ -11,3 +11,15 @@ def getLogData(logId):
 def EpochToDate(epochTime,year=0,month=0,day=1,hour=1,minute=1,second=0):
     formatString = ":".join(list(filter(len,['%Y'*year,'%m'*month,'%d'*day,'%H'*hour,'%M'*minute,'%S'*second])))
     return datetime.fromtimestamp(epochTime).strftime(formatString)
+
+def dataToMlArray(rawData):
+    logData = {}
+    station_id = 0
+    for station in rawData:
+        logData[station_id] = rawData[station][0]
+        station_id += 1
+    return logData
+
+
+logData,_ = getLogData(5)
+dataToMlArray(logData)
