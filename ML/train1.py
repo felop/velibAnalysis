@@ -24,38 +24,39 @@ meta_test = []
 y_train = []
 y_test = []
 
-offset = 5
-
-def processLogs(process=0, save=0):
+def processLogs(process=0, save=0, offset=1, batchSize=1):
     global x_train, meta_train, y_train
+    folderPath = "off"+str(offset)+"_batch"+str(batchSize)
     if process == 1:
         logs = glob("../data/logs/*")
-        for logId in tqdm(range(len(logs)-offset)[:20]):
-            rawData, timeStamp = getLogData(logId,"../data/logs/")
-            logData = dataToMlArray(sortSelect(rawData))
-            logData = [logData[station] for station in logData]
-            x_train.append(logData)
-
+        for logId in tqdm(xrange(len(logs)-offset-batchSize)[:40000]):
+            for batchRank in range(batchSize):
+                batch = []
+                rawData, timeStamp = getLogData(logId+batchRank,"../data/logs/")
+                logData = dataToMlArray(sortSelect(rawData))
+                logData = [logData[station] for station in logData]
+                batch.append(logData)
+            x_train.append(batch)
             date = EpochToDate(timeStamp,weekday=1,day=0).split(":")
             weekday, hour, minutes = round(int(date[0])/7, 3), round(int(date[1])/24, 3), round(int(date[2])/60, 3)
             meta_train.append([weekday,hour,minutes])
 
             logData = dataToMlArray(sortSelect(getLogData(logId+offset,"../data/logs/")[0]))
             logData = [logData[station] for station in logData]
-            y_train.append(logData)
+            y_train.append([logData])
         if save == 1:
-            with open("preprocessedData/x_train.json", "w") as file:
+            with open("preprocessedData/"+folderPath+"/x_train.json", "w") as file:
                 json.dump(x_train, file)
-            with open("preprocessedData/y_train.json", "w") as file:
+            with open("preprocessedData/"+folderPath+"/y_train.json", "w") as file:
                 json.dump(y_train, file)
-            with open("preprocessedData/meta_train.json", "w") as file:
+            with open("preprocessedData/"+folderPath+"/meta_train.json", "w") as file:
                 json.dump(meta_train, file)
     elif process == 0:
-        x_train = json.load(open("preprocessedData/x_train.json", "r"))
-        y_train = json.load(open("preprocessedData/y_train.json", "r"))
-        meta_train = json.load(open("preprocessedData/meta_train.json", "r"))
+        x_train = json.load(open("preprocessedData/"+folderPath+"/x_train.json", "r"))
+        y_train = json.load(open("preprocessedData/"+folderPath+"/y_train.json", "r"))
+        meta_train = json.load(open("preprocessedData/"+folderPath+"/meta_train.json", "r"))
 
-processLogs(process=0)
+processLogs(process=1, save=1, offset=1, batchSize=10)
 
 x_train,meta_train,y_train = shuffle(x_train,meta_train,y_train)
 x_train,x_test,meta_train,meta_test,y_train,y_test = train_test_split(x_train,meta_train,y_train, test_size = 0.20)
@@ -75,7 +76,7 @@ y_test  = np.array(y_test)
 regularisationParam = 1e-7
 kr=keras.regularizers.l1_l2(l1=regularisationParam, l2=regularisationParam)
 
-inp1 = Input(shape=(1436,))
+inp1 = Input(shape=(1, 1436,))
 #inp2 = Input(shape=(3,))
 
 dense = Dense(718, activation="sigmoid")(inp1)
