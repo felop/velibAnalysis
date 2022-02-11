@@ -29,7 +29,7 @@ def processLogs(process=0, save=0, offset=1, batchSize=1):
     folderPath = "off"+str(offset)+"_batch"+str(batchSize)
     if process == 1:
         logs = glob("../data/logs/*")
-        for logId in tqdm(xrange(len(logs)-offset-batchSize)[:40000]):
+        for logId in tqdm(range(len(logs)-offset-batchSize)[:40000]):
             for batchRank in range(batchSize):
                 batch = []
                 rawData, timeStamp = getLogData(logId+batchRank,"../data/logs/")
@@ -56,7 +56,7 @@ def processLogs(process=0, save=0, offset=1, batchSize=1):
         y_train = json.load(open("preprocessedData/"+folderPath+"/y_train.json", "r"))
         meta_train = json.load(open("preprocessedData/"+folderPath+"/meta_train.json", "r"))
 
-processLogs(process=1, save=1, offset=1, batchSize=10)
+processLogs(process=0, save=0, offset=1, batchSize=1)
 
 x_train,meta_train,y_train = shuffle(x_train,meta_train,y_train)
 x_train,x_test,meta_train,meta_test,y_train,y_test = train_test_split(x_train,meta_train,y_train, test_size = 0.20)
