@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Velib </title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div id="background-image"></div>
+    <div id="content">
+      <div class="Bikes">
+        <p style="text-align: left;font-weight: bold;">état actuel de la borne : </p>
+        Places libres : {{currentStats[0]}} <br/><br/>
+        Vélos disponibles : {{currentStats[1]}}
+      </div>
+
+      <div class="Bikes" style="color:red;">
+        <p style="text-align: left;font-weight: bold;">état présumé de la borne (+5 minutes) : </p>
+        Places libres : {{prediction[0]}} <br/><br/>
+        Vélos disponibles : {{prediction[1]}}
+      </div>
+    </div>
+  </body>
+</html>
