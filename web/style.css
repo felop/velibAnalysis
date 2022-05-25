@@ -18,15 +18,19 @@ body {
   filter: blur(5px);
 }
 
-#content {
-  position: fixed;
-  left: 0;
-  right: 0;
+#container {
+  margin: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+
+  background-color: rgba(255, 255, 255, .7);
   z-index: 2;
-  margin: 3em 25%;
   border: solid thick;
   border-radius: 25px;
-  width: 50%;
+  width: 75%;
   text-align: center;
   box-sizing: border-box;
 }
@@ -38,4 +42,15 @@ body {
   box-sizing: border-box;
   font-size: 2em;
   text-align: right;
+}
+
+.top-menu {
+  background-color: white;
+  width: 100%;
+  font-size: 2em;
+  text-align: left;
+  border-radius: 25px 25px 0px 0px;
+  padding: 1em;
+  box-sizing: border-box;
+  
 }
