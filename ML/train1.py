@@ -15,7 +15,7 @@ from PIL import Image
 from tqdm import tqdm
 from glob import glob
 sys.path.append("../")
-from velibAPI import getLogData, EpochToDate, dataToMlArray, sortSelect
+from velibAPI import getLogData, EpochToDate, dataToMlArray, sortSelect, stationsInfos
 
 x_train = []
 x_test = []
@@ -30,20 +30,18 @@ def processLogs(process=0, save=0, offset=1, batchSize=1):
     if process == 1:
         logs = glob("../data/logs/*")
         for logId in tqdm(range(len(logs)-offset-batchSize)[:40000]):
-            for batchRank in range(batchSize):
-                batch = []
-                rawData, timeStamp = getLogData(logId+batchRank,"../data/logs/")
-                logData = dataToMlArray(sortSelect(rawData))
-                logData = [logData[station] for station in logData]
-                batch.append(logData)
-            x_train.append(batch)
+            rawData, timeStamp = getLogData(logId,"../data/logs/")
+            logData = dataToMlArray(sortSelect(rawData))
+            logData = [logData[station] for station in logData]
+            x_train.append(logData)
             date = EpochToDate(timeStamp,weekday=1,day=0).split(":")
             weekday, hour, minutes = round(int(date[0])/7, 3), round(int(date[1])/24, 3), round(int(date[2])/60, 3)
             meta_train.append([weekday,hour,minutes])
 
             logData = dataToMlArray(sortSelect(getLogData(logId+offset,"../data/logs/")[0]))
-            logData = [logData[station] for station in logData]
-            y_train.append([logData])
+            #logData = [logData[station] for station in logData]
+            targetStationData = rawData[27033125]
+            y_train.append(round(targetStationData[0]/(targetStationData[0]+targetStationData[2]),2))
         if save == 1:
             with open("preprocessedData/"+folderPath+"/x_train.json", "w") as file:
                 json.dump(x_train, file)
@@ -56,7 +54,7 @@ def processLogs(process=0, save=0, offset=1, batchSize=1):
         y_train = json.load(open("preprocessedData/"+folderPath+"/y_train.json", "r"))
         meta_train = json.load(open("preprocessedData/"+folderPath+"/meta_train.json", "r"))
 
-processLogs(process=0, save=0, offset=1, batchSize=1)
+processLogs(process=1, save=1, offset=5, batchSize=1)
 
 x_train,meta_train,y_train = shuffle(x_train,meta_train,y_train)
 x_train,x_test,meta_train,meta_test,y_train,y_test = train_test_split(x_train,meta_train,y_train, test_size = 0.20)
@@ -67,6 +65,8 @@ meta_train = np.array(meta_train)
 meta_test  = np.array(meta_test)
 y_train = np.array(y_train)
 y_test  = np.array(y_test)
+print(y_train.shape)
+print(x_train.shape)
 
 #x_train = np.reshape(x_train, (x_train.shape[0], 1, x_train.shape[1]))
 #x_test  = np.reshape(x_test , (x_test.shape[0] , 1, x_test.shape[1] ))
@@ -76,7 +76,7 @@ y_test  = np.array(y_test)
 regularisationParam = 1e-7
 kr=keras.regularizers.l1_l2(l1=regularisationParam, l2=regularisationParam)
 
-inp1 = Input(shape=(1, 1436,))
+inp1 = Input(shape=(1436,))
 #inp2 = Input(shape=(3,))
 
 dense = Dense(718, activation="sigmoid")(inp1)
@@ -99,7 +99,8 @@ dense = BatchNormalization()(dense)
 dense = Dense(718, activation="sigmoid")(dense)
 dense = BatchNormalization()(dense)
 
-dense = Dense(1436, activation="sigmoid")(dense)
+#dense = Dense(1436, activation="sigmoid")(dense)
+dense = Dense(1, activation="sigmoid")(dense)
 
 #dense = LSTM(1436, activation="relu", return_sequences=False)(dense)
 #merge = Concatenate()([dense,meta])
@@ -111,7 +112,7 @@ dense = Dense(1436, activation="sigmoid")(dense)
 #model = Model(inputs=[inp1,inp2], outputs=dense)
 model = Model(inputs=inp1, outputs=dense)
 
-model.summary()
+#model.summary()
 
 model.compile(loss="mean_squared_error",
 	optimizer=Adam(),
