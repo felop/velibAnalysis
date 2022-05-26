@@ -1,28 +1,45 @@
 <!DOCTYPE html>
 <html lang="fr" dir="ltr">
-  <head>
+
+<head>
     <meta charset="utf-8">
     <title>Velib </title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/png" sizes="48x48" href="favicon.ico">
-  </head>
-  <body>
-    <div id="background-image"></div>
-    <div id="container">
-      <div class="top-menu">
-        <span style="text-align:left;"><b>Borne n°18045 :</b> Pierre Ginier - Clichy</span> {{ date+hour }}
-      </div>
-      <div class="Bikes">
-        <p style="text-align: left;font-weight: bold;">état actuel de la borne : </p>
-        Places libres : {{currentStats[0]}} <br/><br/>
-        Vélos disponibles : {{currentStats[1]}}
-      </div>
+</head>
 
-      <div class="Bikes" style="color:red;">
-        <p style="text-align: left;font-weight: bold;">état présumé de la borne (+5 minutes) : </p>
-        Places libres : {{prediction[0]}} <br/><br/>
-        Vélos disponibles : {{prediction[1]}}
-      </div>
-    </div>
-  </body>
+<body>
+    <div id="background-image"></div>
+
+    <div id="container">
+        <div class="top-menu">
+            <span style="text-align:left;"><b>Borne n°18045 :</b> Pierre Ginier - Clichy</span>
+            <span id="time"></span>
+        </div>
+
+        <div class="Bikes">
+            <p style="text-align: left;font-weight: bold;">état actuel de la borne : </p>
+            Places libres: <span id="free_current"></span><br/><br/> Vélos disponible: <span id="bikes_current"></span>
+        </div>
+
+        <div class="Bikes" style="color:red;">
+            <p style="text-align: left;font-weight: bold;">état présumé de la borne (+5 minutes) : </p>
+            Places libres: <span id="free_prediction"></span><br/><br/> Vélos disponible: <span id="bikes_prediction"></span>
+        </div>
+        <script>
+            async function predict() {
+                                let response = await fetch('/prediction');
+                                let j = await response.json();
+                                document.getElementById('free_current').innerHTML = j.current.free;
+                                document.getElementById('bikes_current').innerHTML = j.current.bikes;
+                                document.getElementById('free_prediction').innerHTML = j.prediction.free;
+                                document.getElementById('bikes_prediction').innerHTML = j.prediction.bikes;
+                                var date = new Date(j.time*1000);
+                                formatedDate = date.toLocaleString();
+                                document.getElementById('time').innerHTML = formatedDate;
+                        }
+                predict();
+        </script>
+</body>
+
 </html>
