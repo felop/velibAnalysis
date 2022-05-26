@@ -33,9 +33,11 @@ MLdata = dataToMlArray(data)
 MLdata = [MLdata[station] for station in MLdata]
 # VELIB DATA
 
-input = np.array([MLdata[:1436]])
-model = load_model("test2.h5")
-prediction = model.predict(input)[0][0]*100
+inputData = np.array([MLdata[:1436]])
+inputMeta = np.array([meta])
+
+model = load_model("netV2.h5")
+prediction = model.predict({"input_1":inputData, "input_2":inputMeta})[0][0]*100
 
 currentStats = [data[27033125][0], data[27033125][2]]
 prediction = math.floor(prediction/100*(currentStats[0]+currentStats[1]))
