@@ -75,7 +75,6 @@ print(x_train.shape)
 #x_test  = np.reshape(x_test , (x_test.shape[0] , 1, x_test.shape[1] ))
 #meta_train = np.reshape(meta_train, (meta_train.shape[0], 1, meta_train.shape[1]))
 #meta_test  = np.reshape(meta_test , (meta_test.shape[0] , 1, meta_test.shape[1] ))
-print(x_train.shape)
 
 regularisationParam = 1e-7
 kr=keras.regularizers.l1_l2(l1=regularisationParam, l2=regularisationParam)
@@ -119,7 +118,6 @@ history = model.fit([x_train,meta_train],y_train,
 model.save("test.h5")
 
 figure, (ax1, ax2) = plt.subplots(1, 2)
-#figure, ax1 = plt.subplots(1, 1)
 ax1.plot(history.history['loss'], label='train')
 ax1.plot(history.history['val_loss'], label='test')
 ax1.set_title('Loss')
