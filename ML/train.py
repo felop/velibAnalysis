@@ -115,7 +115,7 @@ history = model.fit([x_train,meta_train],y_train,
 	#validation_data = (x_test,y_test))
 	validation_data = ([x_test,meta_test],y_test))
 
-model.save("test.h5")
+model.save("netV2.h5")
 
 figure, (ax1, ax2) = plt.subplots(1, 2)
 ax1.plot(history.history['loss'], label='train')
