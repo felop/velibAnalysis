@@ -58,8 +58,8 @@ async def prediction():
     prediction = math.floor(prediction/100*(currentStats[0]+currentStats[1]))
     prediction = [prediction, (currentStats[0]+currentStats[1])-prediction]
     
-    CACHED_PREDICTION = {'current': {'free': currentStats[0], 'bikes': currentStats[1]},
-            'prediction': {'free': prediction[0], 'bikes': prediction[1]},
+    CACHED_PREDICTION = {'current': {'free': currentStats[1], 'bikes': currentStats[0]},
+            'prediction': {'free': prediction[1], 'bikes': prediction[0]},
             'time': LAST_UPDATE}
     return CACHED_PREDICTION
 
