@@ -26,7 +26,7 @@
         </div>
 
         <div id="separator"></div>
-        
+
         <div class="Bikes">
             <p style="text-align: left;font-weight: bold">état présumé de la borne (+5 minutes) : </p>
             <div class="predictions">
@@ -47,7 +47,7 @@
                                   var bikes_changes = " " + arrowU + String(j.prediction.bikes-j.current.bikes) + "</div>";
                                 } else {
                                   var free_changes  = " " + arrowU + String(j.prediction.free-j.current.free) + "</div>";
-                                  var bikes_changes = " " + arrowP + String(j.current.bikes-j.prediction.bikes) + "</div>";
+                                  var bikes_changes = " " + arrowD + String(j.current.bikes-j.prediction.bikes) + "</div>";
                                 }
 
                                 document.getElementById('free_prediction').innerHTML = String(j.prediction.free)+free_changes;
