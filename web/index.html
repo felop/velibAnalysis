@@ -45,9 +45,12 @@
                                 if (j.current.free > j.prediction.free) {
                                   var free_changes  = " " + arrowD + String(j.current.free-j.prediction.free) + "</div>";
                                   var bikes_changes = " " + arrowU + String(j.prediction.bikes-j.current.bikes) + "</div>";
-                                } else {
+                                } else if (j.current.free < j.prediction.free) {
                                   var free_changes  = " " + arrowU + String(j.prediction.free-j.current.free) + "</div>";
                                   var bikes_changes = " " + arrowD + String(j.current.bikes-j.prediction.bikes) + "</div>";
+                                } else {
+                                  var free_changes = "";
+                                  var bikes_changes = "";
                                 }
 
                                 document.getElementById('free_prediction').innerHTML = String(j.prediction.free)+free_changes;
