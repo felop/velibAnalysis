@@ -14,7 +14,7 @@ def getDataApi(lastLogId, logId):
     return data,logId
 
 http = urllib3.PoolManager()
-path = "/media/pi/3b74500a-ac49-4c21-9f74-c40a4522732a/data/"
+path = "data/"
 
 files = glob(path+"*")
 if len(files) == 0:
