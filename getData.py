@@ -1,6 +1,3 @@
-import time
-time.sleep(30)
-
 import urllib3, json, os, time, datetime
 from glob import glob
 
@@ -9,8 +6,10 @@ def getDataApi(lastLogId, logId):
         data = http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json")
         data = json.loads(data.data)
         logId = data["lastUpdatedOther"]
-        timeSinceLastUpdate = datetime.datetime.fromtimestamp(int(time.time())-logId).strftime('%H:%M:%S')
-        print("failing "+str(int(time.time()))+" "+timeSinceLastUpdate,end='\r')
+        logTime = datetime.datetime.fromtimestamp(logId)
+        utcTime = datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))
+        timeSinceLastUpdate = (utcTime-logTime).total_seconds()
+
     return data,logId
 
 http = urllib3.PoolManager()
@@ -36,4 +35,4 @@ while 1:
     print("log_"+str(lastLogNumber)+" = "+str(logId))
     lastLogNumber+=1
     lastLogId = logId
-    time.sleep(60)
+    time.sleep(59)
