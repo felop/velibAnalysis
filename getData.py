@@ -1,8 +1,10 @@
-import urllib3, json, os, time, datetime
+import urllib3, json, os, time, datetime, requests
 from glob import glob
 
 def reportLog(currentLog="",prevLog="",level=0,info="-"):
     if level < 4:
+        if level == 3:
+            requests.post(f"https://maker.ifttt.com/trigger/error/with/key/{iftttKey}", data={"value1":info})
         level = ["INFO", "WARNING", "ERROR", "CRITICAL"][level]
         currentDate, prevDate, timeGap = "-", "-", "-"
         if isinstance(currentLog, int) and currentLog != 0:
@@ -22,6 +24,7 @@ def reportLog(currentLog="",prevLog="",level=0,info="-"):
     else:
         if level==4:
             log=f"[ starting ] {datetime.datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S ')}{datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))}\n";
+
     with open("temporaryStorageA.log", "a") as logFileA, open("temporaryStorageB.log", "a") as logFileB:
         logFileA.write(log);logFileB.write(log)
 
@@ -44,8 +47,7 @@ def getDataApi(lastLogId, logId):
 
 http = urllib3.PoolManager()
 path = "data/"
-
-reportLog(level=4)
+iftttKey = open("iftttKey.txt", "r").read()
 files = glob(path+"*")
 if len(files) == 0:
     data,logId = getDataApi(0,0)
