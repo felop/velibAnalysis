@@ -33,6 +33,10 @@ def getDataApi(lastLogId, logId, lastLogNumber):
         try:
             data = http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json")
             data = json.loads(data.data)
+        except Exception as error:
+            reportLog(logId,lastLogId,3,f"failed request : {error}",logNumber=lastLogNumber+1)
+            time.sleep(10)
+        else:
             logId = data["lastUpdatedOther"]
             logTime = datetime.datetime.fromtimestamp(logId)
             utcTime = datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))
@@ -40,9 +44,6 @@ def getDataApi(lastLogId, logId, lastLogNumber):
             if timeSinceLastUpdate > 120.0:
                 reportLog(logId,lastLogId,2,f"skip : {int(timeSinceLastUpdate/60)}",logNumber=lastLogNumber+1)
                 time.sleep(59)
-        except Exception as error:
-            reportLog(logId,lastLogId,3,f"failed request : {error}",logNumber=lastLogNumber+1)
-            time.sleep(10)
     return data,logId
 
 http = urllib3.PoolManager()
