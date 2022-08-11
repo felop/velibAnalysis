@@ -13,18 +13,18 @@ class Velib(object):
         if id != 0:
             self._id = id-1
             if meta:
-                self._timeStamp = json.load(open(paths["data"]+f"log_{self._id}.json", "r"))["lastUpdatedOther"]
-                self._time = datetime.datetime.fromtimestamp(self._timeStamp)
+                self._timeStamp = meta
             else:
-                self._timeStamp = meta[0]
-                self._time = meta[1]
+                self._timeStamp = json.load(open(paths["data"]+f"log_{self._id}.json", "r"))["lastUpdatedOther"]
+        else:
+            self._timeStamp = 0
 
-    def downloadData(self, http, lastLogTimeStamp):
-        while lastLogTimeStamp >= logId:
+    def downloadData(self, http):
+        while self._timeStamp >= self.timeStamp:
             try:
                 self.data = json.loads(http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json").data)
             except Exception as error:
-                reportLog(self.timeStamp,self._timeStamp,3,f"failed request : {error}",logNumber=self.id)
+                reportLog(self.timeStamp,self._timeStamp,3,f"failed request : {error}",logId=self.id)
                 time.sleep(10)
             else:
                 self.data = json.loads(http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json").data)
@@ -33,10 +33,10 @@ class Velib(object):
                 self.utcTime = datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))
                 self.timeSinceLastUpdate = (self.utcTime-self.time).total_seconds()
             if self.timeSinceLastUpdate > 120.0:
-                reportLog(self.timeStamp,self._timeStamp,2,f"skip : {int(timeSinceLastUpdate/60)}",logNumber=self.id)
+                reportLog(self.timeStamp,self._timeStamp,2,f"skip : {int(timeSinceLastUpdate/60)}",logId=self.id)
                 time.sleep(59)
 
-def reportLog(currentLog="",prevLog="",level=0,info="-",logNumber=""):
+def reportLog(currentLog="",prevLog="",level=0,info="-",logId=""):
     if level < 4:
         if level == 3:
             requests.post(f"https://maker.ifttt.com/trigger/error/with/key/{iftttKey}", data={"value1":info})
@@ -55,37 +55,35 @@ def reportLog(currentLog="",prevLog="",level=0,info="-",logNumber=""):
         if currentDate != "-" and prevDate != "-":
             timeGap = (currentTime-prevTime)
 
-        log = f"[ {level} ] {logNumber} {currentDate}{currentLog} ; {prevDate}{prevLog} ; {timeGap} ; {info} \n"
+        log = f"[ {level} ] {logId} {currentDate}{currentLog} ; {prevDate}{prevLog} ; {timeGap} ; {info} \n"
     else:
         if level==4:
-            log=f"[ starting ] {datetime.datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S ')}{datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))}\n";
+            log=f"[ starting ] {datetime.datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S ')}{int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds())}\n";
 
     with open("temporaryStorageA.log", "a") as logFileA, open("temporaryStorageB.log", "a") as logFileB:
         logFileA.write(log);logFileB.write(log)
 
 paths = {"data":"/home/user0/data/", "ifttt":"/root/iftttKey.txt", "loggingFileA":"/home/user0/temporaryStorageA.log", "loggingFileB":"/root/temporaryStorageB.log"}
 iftttKey = open(paths["ifttt"], "r").read()
-files = glob(path+"*.json")
+files = glob(paths["data"]+"*.json")
 http = urllib3.PoolManager()
 
+reportLog(level=4)
 if len(files) == 0:
-    lastLogNumber = -1
-    data,logId = getDataApi(0,0,lastLogNumber)
-    with open(path+"log_0.json", "w+") as file:
-        json.dump(data, file)
-    reportLog(logId, logNumber=0)
-    files = glob(path+"*")
-    lastLogId = logId
+    log = Velib(0)
+    log.downloadData(http)
+    with open(paths["data"]+"log_0.json", "w+") as file:
+        json.dump(log.data, file)
+    reportLog(log.timeStamp, logId=0)
 else:
-    lastLogNumber = max([int(files[id].split("_")[1].split(".")[0]) for id in range(len(files))])
-    lastLogId = json.load(open(path+"log_"+str(lastLogNumber)+".json", "r"))["lastUpdatedOther"]
-    logId = lastLogId
+    log = Velib(max([int(files[id].split("_")[1].split(".")[0]) for id in range(len(files))]))
+    log.timeStamp = json.load(open(paths["data"]+"log_"+str(log.id)+".json", "r"))["lastUpdatedOther"]
 
 while 1:
-    data,logId = getDataApi(lastLogId, logId)
-    with open(path+"log_"+str(lastLogNumber+1)+".json", "w+") as file:
-        json.dump(data, file)
-    reportLog(logId,lastLogId,logNumber=lastLogNumber+1)
-    lastLogNumber+=1
-    lastLogId = logId
+    prevLog = log
+    log = Velib(prevLog.id+1, meta=prevLog.timeStamp)
+    log.downloadData(http)
+    with open(f"{paths['data']}log_{log.id}.json", "w+") as file:
+        json.dump(log.data, file)
+    reportLog(log.timeStamp, log._timeStamp, logId=log.id)
     time.sleep(59)
