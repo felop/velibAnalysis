@@ -24,9 +24,7 @@ class Velib(object):
             try:
                 self.data = json.loads(http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json").data)
             except Exception as error:
-                ##############
-                reportLog(logId,lastLogTimeStamp,3,f"failed request : {error}",logNumber=lastLogNumber+1)
-                ##############
+                reportLog(self.timeStamp,self._timeStamp,3,f"failed request : {error}",logNumber=self.id)
                 time.sleep(10)
             else:
                 self.data = json.loads(http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json").data)
@@ -35,9 +33,7 @@ class Velib(object):
                 self.utcTime = datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))
                 self.timeSinceLastUpdate = (self.utcTime-self.time).total_seconds()
             if self.timeSinceLastUpdate > 120.0:
-                ##############
-                reportLog(logId,lastLogTimeStamp,2,f"skip : {int(timeSinceLastUpdate/60)}",logNumber=lastLogNumber+1)
-                ##############
+                reportLog(self.timeStamp,self._timeStamp,2,f"skip : {int(timeSinceLastUpdate/60)}",logNumber=self.id)
                 time.sleep(59)
 
 def reportLog(currentLog="",prevLog="",level=0,info="-",logNumber=""):
@@ -67,27 +63,9 @@ def reportLog(currentLog="",prevLog="",level=0,info="-",logNumber=""):
     with open("temporaryStorageA.log", "a") as logFileA, open("temporaryStorageB.log", "a") as logFileB:
         logFileA.write(log);logFileB.write(log)
 
-def getDataApi(lastLogId, logId, lastLogNumber):
-    while lastLogId >= logId:
-        try:
-            data = http.request("GET", "https://velib-metropole-opendata.smoove.pro/opendata/Velib_Metropole/station_status.json")
-            data = json.loads(data.data)
-        except Exception as error:
-            reportLog(logId,lastLogId,3,f"failed request : {error}",logNumber=lastLogNumber+1)
-            time.sleep(10)
-        else:
-            logId = data["lastUpdatedOther"]
-            logTime = datetime.datetime.fromtimestamp(logId)
-            utcTime = datetime.datetime.fromtimestamp(int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds()))
-            timeSinceLastUpdate = (utcTime-logTime).total_seconds()
-            if timeSinceLastUpdate > 120.0:
-                reportLog(logId,lastLogId,2,f"skip : {int(timeSinceLastUpdate/60)}",logNumber=lastLogNumber+1)
-                time.sleep(59)
-    return data,logId
-
 paths = {"data":"/home/user0/data/", "ifttt":"/root/iftttKey.txt", "loggingFileA":"/home/user0/temporaryStorageA.log", "loggingFileB":"/root/temporaryStorageB.log"}
 iftttKey = open(paths["ifttt"], "r").read()
-files = glob(path+"*")
+files = glob(path+"*.json")
 http = urllib3.PoolManager()
 
 if len(files) == 0:
