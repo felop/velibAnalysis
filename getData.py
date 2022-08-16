@@ -36,32 +36,32 @@ class Velib(object):
                 reportLog(self.timeStamp,self._timeStamp,2,f"skip : {int(timeSinceLastUpdate/60)}",logId=self.id)
                 time.sleep(59)
 
-def reportLog(currentLog="",prevLog="",level=0,info="-",logId=""):
+def reportLog(currentLogTime="",prevLogTime="",level=0,info="-",logId=""):
     if level < 4:
         if level == 3:
             requests.post(f"https://maker.ifttt.com/trigger/error/with/key/{iftttKey}", data={"value1":info})
         level = ["INFO", "WARNING", "ERROR", "CRITICAL"][level]
-        currentDate, prevDate, timeGap = "-", "-", "-"
-        if isinstance(currentLog, int) and currentLog != 0:
-            currentTime = datetime.datetime.fromtimestamp(currentLog)
-            currentDate = currentTime.strftime("%d/%m/%Y %H:%M:%S ")
+        currentLogDate, prevLogDate, timeGap = "-", "-", "-"
+        if isinstance(currentLogTime, int) and currentLogTime != 0:
+            currentLogTime = datetime.datetime.fromtimestamp(currentLogTime)
+            currentLogDate = currentLogTime.strftime("%d/%m/%Y %H:%M:%S ")
         else:
-            currentLog = ""
-        if isinstance(prevLog, int) and prevLog != 0:
-            prevTime = datetime.datetime.fromtimestamp(prevLog)
-            prevDate = prevTime.strftime("%d/%m/%Y %H:%M:%S ")
+            currentLogTime = ""
+        if isinstance(prevLogTime, int) and prevLogTime != 0:
+            prevLogTime = datetime.datetime.fromtimestamp(prevLogTime)
+            prevLogDate = prevLogTime.strftime("%d/%m/%Y %H:%M:%S ")
         else:
-            prevLog = ""
-        if currentDate != "-" and prevDate != "-":
-            timeGap = (currentTime-prevTime)
+            prevLogTime = ""
+        if currentLogDate != "-" and prevLogDate != "-":
+            timeGap = (currentLogTime-prevLogTime)
 
-        log = f"[ {level} ] {logId} {currentDate}{currentLog} ; {prevDate}{prevLog} ; {timeGap} ; {info} \n"
+        logContent = f"[ {level} ] {logId} {currentLogDate}{currentLogTime} ; {prevLogDate}{prevLogTime} ; {timeGap} ; {info} \n"
     else:
         if level==4:
-            log=f"[ starting ] {datetime.datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S ')}{int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds())}\n";
+            logContent = f"[ starting ] {datetime.datetime.utcnow().strftime('%d/%m/%Y %H:%M:%S ')}{int((datetime.datetime.utcnow()-datetime.datetime(1970,1,1)).total_seconds())}\n";
 
     with open("temporaryStorageA.log", "a") as logFileA, open("temporaryStorageB.log", "a") as logFileB:
-        logFileA.write(log);logFileB.write(log)
+        logFileA.write(logContent);logFileB.write(logContent)
 
 paths = {"data":"/home/user0/data/", "ifttt":"/root/iftttKey.txt", "loggingFileA":"/home/user0/temporaryStorageA.log", "loggingFileB":"/root/temporaryStorageB.log"}
 iftttKey = open(paths["ifttt"], "r").read()
