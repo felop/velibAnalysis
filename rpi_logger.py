@@ -1,4 +1,4 @@
-import time, datetime, scp, paramiko, os, json
+import requests, datetime, scp, paramiko, os, json
 from glob import glob
 
 with open("rpi_credentials.json", "r") as file:
