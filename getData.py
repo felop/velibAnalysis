@@ -63,7 +63,8 @@ def reportLog(currentLogTime="",prevLogTime="",level=0,info="-",logId=""):
     with open("temporaryStorageA.log", "a") as logFileA, open("temporaryStorageB.log", "a") as logFileB:
         logFileA.write(logContent);logFileB.write(logContent)
 
-paths = {"data":"/home/user0/data/", "ifttt":"/root/iftttKey.txt", "loggingFileA":"/home/user0/temporaryStorageA.log", "loggingFileB":"/root/temporaryStorageB.log"}
+with open("serv_files.json", "r") as file:
+    paths = json.load(file)
 iftttKey = open(paths["ifttt"], "r").read()
 files = glob(paths["data"]+"*.json")
 http = urllib3.PoolManager()
