@@ -14,8 +14,9 @@ import h5py, random
 from PIL import Image
 from tqdm import tqdm
 from glob import glob
-sys.path.append("../")
-from velibAPI import getLogData, EpochToDate, dataToMlArray, sortSelect, stationsInfos
+from pathlib import Path
+sys.path.append(str(Path(__file__).parents[1]))
+from velib_utils import get_log_data, epoch_to_date, data_to_ml_array, sort_select, stations_infos
 
 x_train = []
 x_test = []
@@ -24,41 +25,41 @@ meta_test = []
 y_train = []
 y_test = []
 
-def processLogs(process=0, save=0, offset=1, batchSize=1):
+def process_logs(process=0, save=0, offset=1, batch_size=1):
     global x_train, meta_train, y_train
-    folderPath = "off"+str(offset)+"_batch"+str(batchSize)
+    folder_path = "off"+str(offset)+"_batch"+str(batch_size)
     if process == 1:
         logs = glob("../data/logs/*")
-        for logId in tqdm(range(len(logs)-offset-batchSize)[:40000]):
-            rawData, timeStamp = getLogData(logId,"../data/logs/")
-            logData, fail = sortSelect(rawData)
+        for log_id in tqdm(range(len(logs)-offset-batch_size)[:40000]):
+            raw_data, time_stamp = get_log_data(log_id,"../data/logs/")
+            log_data, fail = sort_select(raw_data)
             if fail:
                 continue
-            logData = dataToMlArray(logData)
-            logData = [logData[station] for station in logData]
-            x_train.append(logData)
-            date = EpochToDate(timeStamp,weekday=1,day=0).split(":")
+            log_data = data_to_ml_array(log_data)
+            log_data = [log_data[station] for station in log_data]
+            x_train.append(log_data)
+            date = epoch_to_date(time_stamp,weekday=1,day=0).split(":")
             weekday, hour, minutes = round(int(date[0])/7, 3), round(int(date[1])/24, 3), round(int(date[2])/60, 3)
             meta_train.append([weekday,hour,minutes])
 
-            logData,_ = sortSelect(getLogData(logId+offset,"../data/logs/")[0])
-            logData = dataToMlArray(logData)
-            #logData = [logData[station] for station in logData]
-            targetStationData = rawData[27033125]
-            y_train.append(round(targetStationData[0]/(targetStationData[0]+targetStationData[2]),2))
+            log_data,_ = sort_select(get_log_data(log_id+offset,"../data/logs/")[0])
+            log_data = data_to_ml_array(log_data)
+            #log_data = [log_data[station] for station in log_data]
+            target_station_data = raw_data[27033125]
+            y_train.append(round(target_station_data[0]/(target_station_data[0]+target_station_data[2]),2))
         if save == 1:
-            with open("preprocessedData/"+folderPath+"/x_train.json", "w") as file:
+            with open("preprocessedData/"+folder_path+"/x_train.json", "w") as file:
                 json.dump(x_train, file)
-            with open("preprocessedData/"+folderPath+"/y_train.json", "w") as file:
+            with open("preprocessedData/"+folder_path+"/y_train.json", "w") as file:
                 json.dump(y_train, file)
-            with open("preprocessedData/"+folderPath+"/meta_train.json", "w") as file:
+            with open("preprocessedData/"+folder_path+"/meta_train.json", "w") as file:
                 json.dump(meta_train, file)
     elif process == 0:
-        x_train = json.load(open("preprocessedData/"+folderPath+"/x_train.json", "r"))
-        y_train = json.load(open("preprocessedData/"+folderPath+"/y_train.json", "r"))
-        meta_train = json.load(open("preprocessedData/"+folderPath+"/meta_train.json", "r"))
+        x_train = json.load(open("preprocessedData/"+folder_path+"/x_train.json", "r"))
+        y_train = json.load(open("preprocessedData/"+folder_path+"/y_train.json", "r"))
+        meta_train = json.load(open("preprocessedData/"+folder_path+"/meta_train.json", "r"))
 
-processLogs(process=0, save=0, offset=5, batchSize=1)
+process_logs(process=0, save=0, offset=5, batch_size=1)
 x_train,meta_train,y_train = shuffle(x_train,meta_train,y_train)
 x_train,x_test,meta_train,meta_test,y_train,y_test = train_test_split(x_train,meta_train,y_train, test_size = 0.20)
 
@@ -82,17 +83,17 @@ kr=keras.regularizers.l1_l2(l1=regularisationParam, l2=regularisationParam)
 inp1 = Input(shape=(1436,))
 inp2 = Input(shape=(3,))
 
-dataDense = Dense(1436, activation="relu")(inp1)
-dataBias  = Dense(1, activation="relu")(inp1)
+data_dense = Dense(1436, activation="relu")(inp1)
+data_bias  = Dense(1, activation="relu")(inp1)
 
-metaDense = Dense(3, activation="relu")(inp2)
-metaBias  = Dense(1, activation="relu")(inp2)
+meta_dense = Dense(3, activation="relu")(inp2)
+meta_bias  = Dense(1, activation="relu")(inp2)
 
-metaMerge = Concatenate()([metaDense,dataBias])
-meta      = Dense(4, activation="relu")(metaMerge)
+meta_merge = Concatenate()([meta_dense,data_bias])
+meta      = Dense(4, activation="relu")(meta_merge)
 
-dataMerge = Concatenate()([dataDense,metaBias])
-data      = Dense(4, activation="relu")(dataMerge)
+data_merge = Concatenate()([data_dense,meta_bias])
+data      = Dense(4, activation="relu")(data_merge)
 
 merge = Concatenate()([data,meta])
 
